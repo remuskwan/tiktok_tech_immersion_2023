@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 
 	rpc "github.com/TikTokTechImmersion/assignment_demo_2023/rpc-server/kitex_gen/rpc/imservice"
@@ -9,11 +10,18 @@ import (
 	etcd "github.com/kitex-contrib/registry-etcd"
 )
 
+var (
+	rdb = &RedisClient{}
+)
+
 func main() {
-	r, err := etcd.NewEtcdRegistry([]string{"etcd:2379"}) // r should not be reused.
+	ctx := context.Background()
+	err := rdb.InitClient(ctx, "redis:6379", "")
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	r, err := etcd.NewEtcdRegistry([]string{"etcd:2379"}) // r should not be reused.
 
 	svr := rpc.NewServer(new(IMServiceImpl), server.WithRegistry(r), server.WithServerBasicInfo(&rpcinfo.EndpointBasicInfo{
 		ServiceName: "demo.rpc.server",
